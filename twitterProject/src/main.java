@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -10,12 +11,13 @@ public class main {
 	
 	
 	public static void main(String args[]) throws InterruptedException, UnknownHostException{
+		//TODO: make this more commandline/interface friendly
 		String configFile = args[0];
 		String outputDirectory = args[1];
-		long timeToRunFor = Long.valueOf(args[2])*60*1000;
+		String keywordFilesDirectory = args[2];
+		long timeToRunFor = Long.valueOf(args[3])*60*1000;
 		System.out.println("Running w/ config: "+ configFile + ", outputDir: "+ outputDirectory +", for "+args[2] + " minutes");
-		//TODO: make this more commandline/interface friendly
-
+		
 		ArrayList<ValidUser> users = null;
 		try {
 			users = ValidUser.getUsersFromConfig(configFile);
@@ -25,10 +27,23 @@ public class main {
 
 		MongoClient mongoClient = new MongoClient();
 		ArrayList<Sampler> samplers = new ArrayList<Sampler>();
-		samplers.add(new KeywordSampler(users.get(0),mongoClient,outputDirectory+ "_yolo/", "yolandaPH"));
-		samplers.add(new LocationSampler(users.get(1), mongoClient, outputDirectory +"_phil/",116.147463,4.710566,127.836916,21.15944));
-		samplers.add(new LocationSampler(users.get(2), mongoClient, outputDirectory+"_nam/",101.997074,7.942276,109.028324,23.032347));
-		samplers.add(new KeywordSampler(users.get(3),mongoClient,outputDirectory+ "_haiyan/","Haiyan", "Quang Ngai", "Quang Tri", "Dong Ha"));
+
+		File folder = new File(keywordFilesDirectory);
+		File[] listOfFiles = folder.listFiles(); 
+		for (int i = 0; i < listOfFiles.length; i++){
+			if (listOfFiles[i].isFile() & users.size() > 0  & listOfFiles[i].getName().charAt(0)!= '.'){
+				System.out.println(listOfFiles[i].getName());
+				samplers.add(new KeywordsFromFileSampler(users.get(0), 
+														 mongoClient, 
+														 outputDirectory,
+														 "sports",
+														 listOfFiles[i].getName(),
+														 listOfFiles[i]));
+				users.remove(0);
+			} else {
+				System.out.println("skipping: " + listOfFiles[i].getName());
+			}
+		  }
 		
 		for(Sampler s:samplers){
 			s.start();

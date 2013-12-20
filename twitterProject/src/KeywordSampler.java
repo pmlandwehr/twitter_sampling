@@ -1,7 +1,5 @@
-import java.util.ArrayList;
 import java.util.Arrays;
-
-import org.apache.commons.lang3.StringUtils;
+import java.util.List;
 
 import com.mongodb.MongoClient;
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint;
@@ -11,20 +9,26 @@ public class KeywordSampler extends Sampler{
 	
 	
 	public KeywordSampler(
-			ValidUser user, 
-			MongoClient mongoClient,
+			ValidUser user,
 			String outputDirectory,
+			String dbName,
+			String collectionName,
+			MongoClient mongoClient,
 			String ... keywords) throws InterruptedException {
 		
 		super(user,
 			mongoClient,
 			outputDirectory,
-			keywords[0]);
+			dbName,
+			collectionName);
 		
+		setKeywords(Arrays.asList(keywords));
+	}
+	
+	public void setKeywords(List<String> keywords) throws InterruptedException{
 		StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint();
 		// add some track terms
-		ArrayList<String> kw = new ArrayList<String>(Arrays.asList(keywords));
-		endpoint.trackTerms(kw);
+		endpoint.trackTerms(keywords);
 		setEndpoint(endpoint);
 	}
 }

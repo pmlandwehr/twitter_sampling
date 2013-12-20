@@ -13,13 +13,16 @@ public class LocationSampler extends Sampler {
 
 	public LocationSampler(
 			ValidUser user, 
+			String dbName,
+			String collectionName,
 			MongoClient mongoClient,
 			String outputDirectory, 
 			double ... coordinates) throws InterruptedException {
 		super(user, 
-				mongoClient, 
-				outputDirectory, 
-				"blah");
+			  mongoClient, 
+			  outputDirectory, 
+			  dbName,
+			  collectionName);
 		
 		StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint();
 		ArrayList<Location> locations = new ArrayList<Location>();

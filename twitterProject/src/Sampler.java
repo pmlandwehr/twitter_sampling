@@ -39,11 +39,12 @@ public class Sampler implements Runnable{
 	public Sampler(ValidUser user, 
 				  MongoClient mongoClient,
 				  String outputDirectory,
+				  String dbName,
 				  String collectionName){
 		
 		this.outputDirectory = outputDirectory;
 		this.user = user;
-		this.db = mongoClient.getDB(user.name+ "_pml");
+		this.db = mongoClient.getDB(dbName);
 		this.collection = db.getCollection(collectionName);
 		this.runThread = new Thread(this, user.name);
 
@@ -56,9 +57,9 @@ public class Sampler implements Runnable{
 			}
 		}
 		try {
-			tweetWriter = new BufferedWriter(new FileWriter(outputDirectory+"tweets.csv"));
-			capturedWriter = new BufferedWriter(new FileWriter(outputDirectory+"captured.csv"));
-			statsWriter = new BufferedWriter(new FileWriter(outputDirectory+"stats.csv"));
+			tweetWriter = new BufferedWriter(new FileWriter(outputDirectory+collectionName+"_tweets.csv"));
+			capturedWriter = new BufferedWriter(new FileWriter(outputDirectory+collectionName+"_captured.csv"));
+			statsWriter = new BufferedWriter(new FileWriter(outputDirectory+collectionName+"_stats.csv"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -121,6 +122,7 @@ public class Sampler implements Runnable{
 				double total = tweet.get("limit").getAsJsonObject().get("track").getAsDouble();
 				try {
 					capturedWriter.append(numCaptured+","+(total-lastTotal)+","+(time-lastTime)+"\n");
+					capturedWriter.flush();
 				} catch (IOException e) {
 					System.out.println("NEED A STACK TRACE");
 					// TODO Auto-generated catch block
