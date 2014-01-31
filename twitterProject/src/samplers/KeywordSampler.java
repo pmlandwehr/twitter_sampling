@@ -1,5 +1,13 @@
+/**
+ * @author kjoseph
+ * This class can be used to sample a set of keywords from Twitter
+ */
+
+package samplers;
 import java.util.Arrays;
 import java.util.List;
+
+import user.ValidUser;
 
 import com.mongodb.MongoClient;
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint;

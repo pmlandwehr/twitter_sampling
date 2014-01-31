@@ -1,3 +1,14 @@
+/**
+ * @author kjoseph
+ * This is the base class for all of the samplers. 
+ * Tweets are put into a mongodb
+ * Also generated is a directory of files that contains three .csvs
+ * The first, *_tweets.csv, just keeps track of the ids and times of the sampled tweets
+ * Second, *_captured.csv keeps track of how your keywords have been rate-limited
+ * Finally, *_stats.csv is written out at the end of the sampling period to assess reconnection stats
+ */
+
+package samplers;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -5,6 +16,8 @@ import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
+import user.ValidUser;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -30,8 +43,9 @@ public class Sampler implements Runnable{
 	protected ValidUser user;
 	protected Thread runThread;
 	protected BufferedWriter tweetWriter;
-	protected BufferedWriter capturedWriter;
-	protected BufferedWriter statsWriter;
+	//Make these file writers so that they immediately write
+	protected FileWriter capturedWriter;
+	protected FileWriter statsWriter;
 	protected boolean stop = false;
 	protected DBCollection collection;
 	protected DefaultStreamingEndpoint endpoint;
@@ -45,6 +59,7 @@ public class Sampler implements Runnable{
 		this.outputDirectory = outputDirectory;
 		this.user = user;
 		this.db = mongoClient.getDB(dbName);
+		System.out.println("Putting into DB: " + dbName + " in collection: " + collectionName);
 		this.collection = db.getCollection(collectionName);
 		this.runThread = new Thread(this, user.name);
 
@@ -57,9 +72,10 @@ public class Sampler implements Runnable{
 			}
 		}
 		try {
+			System.out.println("CREATING FILES");
 			tweetWriter = new BufferedWriter(new FileWriter(outputDirectory+collectionName+"_tweets.csv"));
-			capturedWriter = new BufferedWriter(new FileWriter(outputDirectory+collectionName+"_captured.csv"));
-			statsWriter = new BufferedWriter(new FileWriter(outputDirectory+collectionName+"_stats.csv"));
+			capturedWriter = new FileWriter(outputDirectory+collectionName+"_captured.csv");
+			statsWriter = new FileWriter(outputDirectory+collectionName+"_stats.csv");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -106,7 +122,6 @@ public class Sampler implements Runnable{
 		double lastTime = System.currentTimeMillis();
 		while(!client.isDone() && !stop) {
 			String msg=null;
-			
 			//Get tweet
 			try {
 				msg = queue.poll(5, TimeUnit.SECONDS);
@@ -122,10 +137,7 @@ public class Sampler implements Runnable{
 				double total = tweet.get("limit").getAsJsonObject().get("track").getAsDouble();
 				try {
 					capturedWriter.append(numCaptured+","+(total-lastTotal)+","+(time-lastTime)+"\n");
-					capturedWriter.flush();
 				} catch (IOException e) {
-					System.out.println("NEED A STACK TRACE");
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				//System.out.println(user.name + " rate limited");
@@ -140,7 +152,6 @@ public class Sampler implements Runnable{
 									  +tweet.get("created_at").getAsString()+"\n");
 					collection.insert((DBObject) JSON.parse(msg));
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

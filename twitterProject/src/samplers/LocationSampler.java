@@ -1,13 +1,20 @@
-import java.util.ArrayList;
-import java.util.Arrays;
+/**
+ * @author kjoseph
+ * Sampling with a bounding box
+ * See examples directory for how to use
+ */
 
-import org.apache.commons.lang3.StringUtils;
+package samplers;
+import java.util.ArrayList;
+import java.util.List;
+
+
+import user.ValidUser;
 
 import com.mongodb.MongoClient;
-import com.twitter.hbc.core.endpoint.Location;
 import com.twitter.hbc.core.endpoint.Location.Coordinate;
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint;
-
+import com.twitter.hbc.core.endpoint.Location;
 
 public class LocationSampler extends Sampler {
 
@@ -17,6 +24,7 @@ public class LocationSampler extends Sampler {
 			String collectionName,
 			MongoClient mongoClient,
 			String outputDirectory, 
+			List<String> terms,
 			double ... coordinates) throws InterruptedException {
 		super(user, 
 			  mongoClient, 
@@ -29,6 +37,9 @@ public class LocationSampler extends Sampler {
 		for(int i = 0; i <= coordinates.length-4;i+=4){
 			locations.add( new Location(new Coordinate(coordinates[i], coordinates[i+1]),
 						  				new Coordinate(coordinates[i+2], coordinates[i+3])));
+		}
+		if(terms != null){
+			endpoint.trackTerms(terms);
 		}
 		endpoint.locations(locations);
 		setEndpoint(endpoint);
