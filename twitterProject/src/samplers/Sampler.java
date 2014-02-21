@@ -1,7 +1,7 @@
 /**
  * @author kjoseph
  * This is the base class for all of the samplers. 
- * Tweets are put into a mongodb
+ * Tweets are put into a mongodb or a directory
  * Also generated is a directory of files that contains three .csvs
  * The first, *_tweets.csv, just keeps track of the ids and times of the sampled tweets
  * Second, *_captured.csv keeps track of how your keywords have been rate-limited
@@ -13,12 +13,15 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Calendar;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import user.ValidUser;
 
+import com.google.common.io.Files;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mongodb.DB;
@@ -36,9 +39,13 @@ import com.twitter.hbc.httpclient.auth.Authentication;
 import com.twitter.hbc.httpclient.auth.OAuth1;
 
 
+
 public class Sampler implements Runnable{
 
 	protected String outputDirectory;
+	protected boolean useMongo;
+	protected File tweetFolder;
+	protected File curOutputFile;
 	protected DB db;
 	protected ValidUser user;
 	protected Thread runThread;
@@ -49,7 +56,37 @@ public class Sampler implements Runnable{
 	protected boolean stop = false;
 	protected DBCollection collection;
 	protected DefaultStreamingEndpoint endpoint;
+	protected Calendar cal;
 	
+	/**
+	 * Helper function for initializing directories.
+	 * 
+	 * @param outputDirectory the path to the directory to create
+	 * @return true if the directory is created, false otherwise
+	 */
+	public boolean initializeDirectory(File outputDirectory) {
+		if (outputDirectory.exists()) { return true; }	
+		System.out.println("creating directory: " + outputDirectory.getAbsolutePath());
+		boolean result = outputDirectory.mkdir();  
+		if(result) { System.out.println(" Success!");}
+		else       { System.out.println(" Failure"); }
+		return result;
+	}
+	
+	public boolean setNewCurOutputFile() {
+		String outfilename = this.cal.getTime().toString().replace(" ","_")+".txt";
+		try {
+			Files.touch(new File(tweetFolder,outfilename));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		this.curOutputFile = new File(tweetFolder,outfilename);
+		return true;
+		
+	}
+
 	public Sampler(ValidUser user, 
 				  MongoClient mongoClient,
 				  String outputDirectory,
@@ -59,18 +96,12 @@ public class Sampler implements Runnable{
 		this.outputDirectory = outputDirectory;
 		this.user = user;
 		this.db = mongoClient.getDB(dbName);
+		this.useMongo = true;
 		System.out.println("Putting into DB: " + dbName + " in collection: " + collectionName);
 		this.collection = db.getCollection(collectionName);
 		this.runThread = new Thread(this, user.name);
-
-		File theDir = new File(outputDirectory);
-		if (!theDir.exists()) {
-			System.out.println("creating directory: " + outputDirectory);
-			boolean result = theDir.mkdir();  
-			if(result) {    
-				System.out.println("DIR created");  
-			}
-		}
+		
+		initializeDirectory(new File(outputDirectory));
 		try {
 			System.out.println("CREATING FILES");
 			tweetWriter = new BufferedWriter(new FileWriter(outputDirectory+collectionName+"_tweets.csv"));
@@ -82,6 +113,34 @@ public class Sampler implements Runnable{
 		}
 		
 	}
+	
+	public Sampler(ValidUser user, 
+			  String outputDirectory,
+			  String tweetFolder) {
+	
+		this.outputDirectory = outputDirectory;
+		this.user = user;
+		this.tweetFolder = new File(outputDirectory,tweetFolder);
+		this.useMongo = false;
+		System.out.println("Putting into Folder: " + tweetFolder);
+		this.runThread = new Thread(this, user.name);
+		
+		initializeDirectory(new File(outputDirectory));
+		initializeDirectory(this.tweetFolder);
+		
+		try {
+			System.out.println("CREATING FILES");
+			tweetWriter = new BufferedWriter(new FileWriter(outputDirectory+"default_tweets.csv"));
+			capturedWriter = new FileWriter(outputDirectory+"default_captured.csv");
+			statsWriter = new FileWriter(outputDirectory+"default_stats.csv");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		setNewCurOutputFile();
+	
+	}
+	
 	public void setEndpoint(DefaultStreamingEndpoint endpoint) throws InterruptedException{
 		this.endpoint = endpoint;
 
@@ -140,6 +199,9 @@ public class Sampler implements Runnable{
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+				if (!useMongo) {
+					setNewCurOutputFile();
+				}
 				//System.out.println(user.name + " rate limited");
 				lastTime=time;
 				lastTotal=total;
@@ -149,8 +211,13 @@ public class Sampler implements Runnable{
 				numCaptured++;
 				try {
 					tweetWriter.append(tweet.get("id_str").getAsString()+","+String.valueOf(numCaptured)+","
-									  +tweet.get("created_at").getAsString()+"\n");
-					collection.insert((DBObject) JSON.parse(msg));
+							+tweet.get("created_at").getAsString()+"\n");
+					if (useMongo) {
+						collection.insert((DBObject) JSON.parse(msg));
+					}
+					else {
+						Files.append(JSON.parse(msg)+"\n", this.curOutputFile, StandardCharsets.UTF_8);
+					}
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
