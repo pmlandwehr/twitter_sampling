@@ -2,15 +2,26 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="/Users/kjoseph/eclipse_workspace/hbc/hbc-core/target/hbc-core-1.4.1-SNAPSHOT-jar-with-dependencies.jar"/>
-	<classpathentry kind="lib" path="/Users/kjoseph/eclipse_workspace/google-gson-2.2.3/gson-2.2.3-javadoc.jar"/>
-	<classpathentry kind="lib" path="/Users/kjoseph/eclipse_workspace/google-gson-2.2.3/gson-2.2.3-sources.jar"/>
-	<classpathentry kind="lib" path="/Users/kjoseph/eclipse_workspace/google-gson-2.2.3/gson-2.2.3.jar"/>
-	<classpathentry kind="lib" path="/Users/kjoseph/eclipse_workspace/commons-lang3-3.1.jar" sourcepath="/Users/kjoseph/Desktop/ark-tweet-nlp">
+	<classpathentry kind="lib" path="jars/hbc-core-1.4.1-SNAPSHOT-jar-with-dependencies.jar"/>
+	<classpathentry kind="lib" path="jars/gson-2.2.3.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:file:/Users/kjoseph/eclipse_workspace/commons-lang3-3.1-javadoc.jar!/"/>
+			<attribute name="javadoc_location" value="http://google-gson.googlecode.com/svn/trunk/gson/docs/javadocs/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/Users/kjoseph/eclipse_workspace/mongo-2.10.1.jar"/>
+	<classpathentry kind="lib" path="jars/commons-lang3-3.1.jar" sourcepath="/Users/kjoseph/Desktop/ark-tweet-nlp">
+		<attributes>
+			<attribute name="javadoc_location" value="https://commons.apache.org/proper/commons-lang/javadocs/api-release"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="jars/mongo-2.10.1.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="http://api.mongodb.org/java/2.10.1/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="jars/guava-16.0.1.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="http://docs.guava-libraries.googlecode.com/git-history/release/javadoc"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
