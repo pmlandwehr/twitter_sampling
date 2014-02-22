@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+
 import user.ValidUser;
 
 import com.mongodb.MongoClient;
@@ -31,6 +32,30 @@ public class LocationSampler extends Sampler {
 			  outputDirectory, 
 			  dbName,
 			  collectionName);
+		
+		StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint();
+		ArrayList<Location> locations = new ArrayList<Location>();
+		for(int i = 0; i <= coordinates.length-4;i+=4){
+			locations.add( new Location(new Coordinate(coordinates[i], coordinates[i+1]),
+						  				new Coordinate(coordinates[i+2], coordinates[i+3])));
+		}
+		if(terms != null){
+			endpoint.trackTerms(terms);
+		}
+		endpoint.locations(locations);
+		setEndpoint(endpoint);
+		
+	}
+	
+	public LocationSampler(
+			ValidUser user, 
+			String outputDirectory,
+			String tweetFolder,
+			List<String> terms,
+			double ... coordinates) throws InterruptedException {
+		super(user, 
+			  outputDirectory, 
+			  tweetFolder);
 		
 		StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint();
 		ArrayList<Location> locations = new ArrayList<Location>();

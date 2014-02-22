@@ -12,10 +12,7 @@ import com.mongodb.MongoClient;
 
 public class KeywordsFromFileSampler extends KeywordSampler{
 
-	public KeywordsFromFileSampler(ValidUser user, MongoClient mongoClient,
-			String outputDirectory, String dbName, String collectionName, File file)
-			throws InterruptedException {
-		super(user,  outputDirectory, dbName, collectionName, mongoClient);
+	private ArrayList<String> getKeywordsFromFile(File file) {
 		ArrayList<String> keywords = new ArrayList<String>();
 		try {
 			BufferedReader reader =  new BufferedReader(new FileReader(file)); 
@@ -29,6 +26,24 @@ public class KeywordsFromFileSampler extends KeywordSampler{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return keywords;
+	}
+	
+	public KeywordsFromFileSampler(ValidUser user, MongoClient mongoClient,
+			String outputDirectory, String dbName, String collectionName, File file)
+			throws InterruptedException {
+		super(user,  outputDirectory, dbName, collectionName, mongoClient);
+		
+		ArrayList<String> keywords = getKeywordsFromFile(file);
+		setKeywords(keywords);
+	}
+	
+	public KeywordsFromFileSampler(ValidUser user, String outputDirectory,
+			String tweetFolder, File file)
+			throws InterruptedException {
+		super(user,  outputDirectory, tweetFolder);
+		
+		ArrayList<String> keywords = getKeywordsFromFile(file);
 		setKeywords(keywords);
 	}
 

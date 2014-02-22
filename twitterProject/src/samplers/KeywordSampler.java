@@ -33,6 +33,19 @@ public class KeywordSampler extends Sampler{
 		setKeywords(Arrays.asList(keywords));
 	}
 	
+	public KeywordSampler(
+			ValidUser user, 
+			String outputDirectory,
+			String tweetFolder,
+			String ... keywords) throws InterruptedException {
+		
+		super(user,
+			outputDirectory,
+			tweetFolder);
+		
+		setKeywords(Arrays.asList(keywords));
+	}
+	
 	public void setKeywords(List<String> keywords) throws InterruptedException{
 		StatusesFilterEndpoint endpoint = new StatusesFilterEndpoint();
 		// add some track terms
